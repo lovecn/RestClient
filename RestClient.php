@@ -2,7 +2,7 @@
 /**
  * Restful Api请求类
  * 
- * @author Link<dingqing1900@gmail.com>
+ * @author Mckee<dingqing1900@gmail.com>
  */
 class RestClient {
     
@@ -30,65 +30,114 @@ class RestClient {
         return $this->http_code;
     }
 
-    public function get($url, $params = array(), $headers = array(), $data_type = 'json')
+    public function get($url, $params = array(), $headers = array())
     {
         curl_setopt($this->ch, CURLOPT_HTTPGET,TRUE);
         
-        $result = $this->do_request($url, 'GET', $params, $headers, $data_type);
-        return $this->get_response($result, $data_type);
+        if(!empty($params)) $url .= '?' . http_build_query ($params);
+        
+        $result = $this->do_request($url, $headers);
+        return $this->get_response($result);
     }
     
-    public function post($url, $params = array(), $headers = array(), $data_type = 'json')
+    public function post($url, $params = array(), $headers = array())
     {
+        curl_setopt($this->ch, CURLOPT_POST, TRUE);
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, !empty($params) ? json_encode($params) : '');
         
-        $result = $this->do_request($url, 'GET', $params, $headers, $data_type);
-        return $this->get_response($result, $data_type);
+        $headers = array_merge($headers, array(
+            'Content-type: application/json'
+        )); 
+                
+        $result = $this->do_request($url, $headers);
+        return $this->get_response($result);
     }
     
-    public function put($url, $params = array(), $headers = array(), $data_type = 'json')
+    public function put($url, $params = array(), $headers = array())
     {
+        curl_setopt($this->ch, CURLOPT_PUT, TRUE);
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, !empty($params) ? json_encode($params) : '');
         
-        $result = $this->do_request($url, 'GET', $params, $headers, $data_type);
-        return $this->get_response($result, $data_type);
+        $headers = array_merge($headers, array(
+			'X-HTTP-Method-Override: PUT', 
+			'Content-type: application/json'
+		));
+        
+        $result = $this->do_request($url, $headers);
+        return $this->get_response($result);
     }
     
-    public function delete($url, $params = array(), $headers = array(), $data_type = 'json')
+    public function delete($url, $params = array(), $headers = array())
     {
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
         
-        $result = $this->do_request($url, 'GET', $params, $headers, $data_type);
-        return $this->get_response($result, $data_type);
+        $result = $this->do_request($url, $headers);
+        return $this->get_response($result);
     }
     
-    private function do_request($url, $method, $params = array(), $headers = array(), $data_type = 'json')
+    public function patch($url, $params = array(), $headers = array())
     {
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, !empty($params) ? json_encode($params) : '');
         
+        $headers = array_merge($headers, array(
+			'X-HTTP-Method-Override: PATCH', 
+			'Content-type: application/json'
+		));
+        
+        $result = $this->do_request($url, $headers);
+        return $this->get_response($result);
+    }
+
+
+    private function do_request($url, $params = array(), $headers = array())
+    {
+        curl_setopt($this->ch, CURLOPT_URL, $url);
+        curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
+        
+        $response = curl_exec($this->ch);
+        
+        $this->http_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
+        $curl_info = curl_getinfo($this->ch);
+        
+        if($this->debug)
+        {
+            echo "==========params==========\r\n";
+            print_r($params);
+            
+            echo "==========headers==========\r\n";
+            print_r($headers);
+            
+            echo "==========curl_info==========\r\n";
+            print_r(curl_getinfo($this->ch));
+            
+            echo "==========response==========\r\n";
+            print_r($response);
+            
+            echo "==========curl_error==========\r\n";
+            print_r(curl_error($this->ch));
+        }
+        
+        return $response;
     }
     
     /**
-     * 处理request响应结果，支持json, xml, plain text类型
+     * 处理request响应结果
      * 
      * @param mixed   $result     请求返回结果
-     * @param string  $data_type  返回数据类型
      * 
      * @return mixed
      */
-    public function get_response($result, $data_type = 'json')
+    private function get_response($result)
     {
         if(empty($result))
         {
             return FALSE;
         }
         
-        switch ($data_type)
-        {
-            case 'json' :
-                return json_decode($result, TRUE);
-                break;
-            case 'xml' :
-                return simplexml_load_string($result);
-        }
-        
-        return $result;
+
+        return json_decode($result, TRUE);
+
     }
     
     public function __destruct()
