@@ -7,3 +7,4 @@ echo json_encode(array(
         'content_type' => $_SERVER['CONTENT_TYPE'],
         'data' => json_decode(file_get_contents('php://input'), true)
 	));
+die();

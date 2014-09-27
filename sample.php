@@ -2,6 +2,7 @@
 
 require 'RestClient.php';
 
+
 $client = new RestClient();
 
 $base_url = 'http://localhost/RestClient/';
