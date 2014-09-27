@@ -6,5 +6,4 @@ echo json_encode(array(
 		'method' => $_SERVER['REQUEST_METHOD'],
         'content_type' => $_SERVER['CONTENT_TYPE'],
         'data' => json_decode(file_get_contents('php://input'), true)
-	));
-die();
+));
