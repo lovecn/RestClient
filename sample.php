@@ -28,5 +28,5 @@ switch($_GET['method'])
     
 }
 
-
+//测试
 print_r($rs);
