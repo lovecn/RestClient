@@ -1,6 +1,6 @@
 <?php
 error_reporting(0);
-
+//测试
 echo json_encode(array(
 		'text' => 'this is test',
 		'method' => $_SERVER['REQUEST_METHOD'],
